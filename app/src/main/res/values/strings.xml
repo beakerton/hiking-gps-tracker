@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Hiking GPS</string>
     <string name="action_settings">Settings</string>
+
+    <string name="location_label">Location: </string>
+    <string name="lat_long_display">%1$f, %2$f</string>
+    <string name="elevation_label">Elevation: </string>
+    <string name="elevation_display">%1$.1f meters</string>
+    <string name="accuracy">Location is accurate within %.1f meters</string>
 </resources>

@@ -2,6 +2,7 @@ package net.herchenroether.hikinggps;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -13,22 +14,32 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.herchenroether.hikinggps.databinding.ActivityMainBinding;
 import net.herchenroether.hikinggps.location.AppLocationManager;
+import net.herchenroether.hikinggps.location.LocationViewModel;
 import net.herchenroether.hikinggps.utils.Logger;
 
 import java.util.Locale;
 
-
+/**
+ * Entry activity to the application
+ */
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+    LocationViewModel mLocationViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        // Set up databinding
+        final ActivityMainBinding mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mLocationViewModel = new LocationViewModel(this);
+        mainBinding.locationInfo.setLocation(mLocationViewModel);
+
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -50,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        final int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
@@ -70,13 +81,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         // We already have the permission, start location tracking
         startLocationTracking();
+        AppLocationManager.getInstance().addListener(mLocationViewModel);
     }
 
     protected void onStop() {
+        AppLocationManager.getInstance().removeListener(mLocationViewModel);
         AppLocationManager.getInstance().disconnect();
         super.onStop();
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {

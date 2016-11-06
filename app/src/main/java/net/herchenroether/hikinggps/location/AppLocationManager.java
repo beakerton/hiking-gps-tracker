@@ -17,20 +17,25 @@ import com.google.android.gms.location.LocationServices;
 
 import net.herchenroether.hikinggps.utils.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 
 /**
- *
+ * Keeps the rest of the app informed about location changes
  *
  * Created by Adam Herchenroether on 11/5/2016.
  */
 public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private final long LOCATION_UPDATE_INTERVAL_MILLIS = 5000;
 
+    private final List<LocationUpdatedListener> mListeners;
+
     private Context mContext;
     private GoogleApiClient mGoogleApiClient;
 
-    private static class SingletonHelper{
+    private static class SingletonHelper {
         private static final AppLocationManager INSTANCE = new AppLocationManager();
     }
 
@@ -38,7 +43,9 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
         return SingletonHelper.INSTANCE;
     }
 
-    private AppLocationManager() {}
+    private AppLocationManager() {
+        mListeners = new ArrayList<>();
+    }
 
     /**
      * Connects to the GoogleApiClient and starts location updates
@@ -68,14 +75,6 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Location location = LocationServices.FusedLocationApi.getLastLocation(
-                    mGoogleApiClient);
-            if (location != null) {
-                Logger.info("Latitude = " + String.valueOf(location.getLatitude()));
-                Logger.info("Longitude = " + String.valueOf(location.getLongitude()));
-                Logger.info("Altitude = " + String.valueOf(location.getAltitude()));
-                Logger.info("Accuracy = " + String.valueOf(location.getAccuracy()));
-            }
             final LocationRequest locationRequest = new LocationRequest().setPriority(PRIORITY_HIGH_ACCURACY).setInterval(LOCATION_UPDATE_INTERVAL_MILLIS);
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, locationRequest, this);
@@ -92,11 +91,35 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
         Logger.error("Connection failed! " + connectionResult.getErrorMessage());
     }
 
+    /**
+     * Inform all listeners of the location change
+     *
+     * @param location - new location
+     */
     @Override
     public void onLocationChanged(Location location) {
-        Logger.info("Latitude = " + String.valueOf(location.getLatitude()));
-        Logger.info("Longitude = " + String.valueOf(location.getLongitude()));
-        Logger.info("Altitude = " + String.valueOf(location.getAltitude()));
-        Logger.info("Accuracy = " + String.valueOf(location.getAccuracy()));
+        synchronized(mListeners) {
+            for (LocationUpdatedListener listener : mListeners) {
+                listener.onLocationUpdated(location);
+            }
+        }
+    }
+
+    /**
+     * @param listener Adds the specified listener
+     */
+    public void addListener(@NonNull LocationUpdatedListener listener) {
+        synchronized(mListeners) {
+            mListeners.add(listener);
+        }
+    }
+
+    /**
+     * @param listener Removes the specified listener
+     */
+    public void removeListener(@NonNull LocationUpdatedListener listener) {
+        synchronized(mListeners) {
+            mListeners.remove(listener);
+        }
     }
 }
