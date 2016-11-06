@@ -7,4 +7,16 @@
     <string name="elevation_label">Elevation: </string>
     <string name="elevation_display">%1$.1f meters</string>
     <string name="accuracy">Location is accurate within %.1f meters</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+    <string name="pref_unit_system_header">Unit system</string>
+    <string-array name="unit_system_titles">
+        <item>Imperial</item>
+        <item>Metric</item>
+    </string-array>
+    <string-array name="unit_system_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
 </resources>

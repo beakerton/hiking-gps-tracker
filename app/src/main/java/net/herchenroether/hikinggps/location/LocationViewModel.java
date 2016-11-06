@@ -8,12 +8,10 @@ import android.support.annotation.NonNull;
 
 import net.herchenroether.hikinggps.R;
 
-import java.util.Locale;
-
 /**
  * Parses location data and creates strings to display it
  *
- * Created by Adam on 11/5/2016.
+ * Created by Adam Herchenroether on 11/5/2016.
  */
 public class LocationViewModel extends BaseObservable implements LocationUpdatedListener {
     private final Context mContext;
