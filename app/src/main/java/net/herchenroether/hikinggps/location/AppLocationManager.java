@@ -20,6 +20,8 @@ import net.herchenroether.hikinggps.utils.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Singleton;
+
 import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 
 /**
@@ -27,6 +29,7 @@ import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCU
  *
  * Created by Adam Herchenroether on 11/5/2016.
  */
+@Singleton
 public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private final long LOCATION_UPDATE_INTERVAL_MILLIS = 5000;
 
@@ -35,25 +38,15 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
     private Context mContext;
     private GoogleApiClient mGoogleApiClient;
 
-    private static class SingletonHelper {
-        private static final AppLocationManager INSTANCE = new AppLocationManager();
-    }
-
-    public static AppLocationManager getInstance(){
-        return SingletonHelper.INSTANCE;
-    }
-
-    private AppLocationManager() {
+    public AppLocationManager(@NonNull Context context) {
+        mContext = context;
         mListeners = new ArrayList<>();
     }
 
     /**
      * Connects to the GoogleApiClient and starts location updates
-     *
-     * @param context
      */
-    public void connect(@NonNull Context context) {
-        mContext = context;
+    public void connect() {
         mGoogleApiClient = new GoogleApiClient.Builder(mContext)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)

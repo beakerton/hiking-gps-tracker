@@ -24,15 +24,24 @@ import net.herchenroether.hikinggps.utils.Logger;
 
 import java.util.Locale;
 
+import javax.inject.Inject;
+
 /**
  * Entry activity to the application
  */
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
-    LocationViewModel mLocationViewModel;
+
+    @Inject
+    AppLocationManager mAppLocationManager;
+
+    private LocationViewModel mLocationViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // dependency injection
+        ((HikingApplication)getApplication()).getLocationComponent().inject(this);
 
         PreferenceManager.setDefaultValues(this, R.xml.pref_general, false);
 
@@ -85,12 +94,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         // We already have the permission, start location tracking
         startLocationTracking();
-        AppLocationManager.getInstance().addListener(mLocationViewModel);
+        mAppLocationManager.addListener(mLocationViewModel);
     }
 
     protected void onStop() {
-        AppLocationManager.getInstance().removeListener(mLocationViewModel);
-        AppLocationManager.getInstance().disconnect();
+        mAppLocationManager.removeListener(mLocationViewModel);
+        mAppLocationManager.disconnect();
         super.onStop();
     }
 
@@ -115,6 +124,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     private void startLocationTracking() {
-        AppLocationManager.getInstance().connect(this);
+        mAppLocationManager.connect();
     }
 }
