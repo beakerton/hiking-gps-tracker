@@ -60,6 +60,7 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
      */
     public void disconnect() {
         if (mGoogleApiClient != null) {
+            Logger.info("AppLocationManager: Stopping location updates");
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
@@ -68,9 +69,9 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Logger.info("AppLocationManager: Starting location updates");
             final LocationRequest locationRequest = new LocationRequest().setPriority(PRIORITY_HIGH_ACCURACY).setInterval(LOCATION_UPDATE_INTERVAL_MILLIS);
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mGoogleApiClient, locationRequest, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
         }
     }
 
