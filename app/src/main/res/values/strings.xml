@@ -6,17 +6,24 @@
     <string name="lat_long_display">%1$f, %2$f</string>
     <string name="elevation_label">Elevation: </string>
     <string name="elevation_display">%1$.1f meters</string>
+    <string name="elevation_display_imperial">%1$.1f feet</string>
     <string name="accuracy">Location is accurate within %.1f meters</string>
+    <string name="accuracy_imperial">Location is accurate within %.1f feet</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
     <string name="pref_unit_system_header">Unit system</string>
     <string-array name="unit_system_titles">
-        <item>Imperial</item>
-        <item>Metric</item>
+        <item>@string/imperial_display</item>
+        <item>@string/metric_display</item>
     </string-array>
-    <string-array name="unit_system_values">
-        <item>0</item>
-        <item>1</item>
+    <string-array name="unit_system_values" translatable="false">
+        <item>@string/imperial_value</item>
+        <item>@string/metric_value</item>
     </string-array>
+
+    <string name="imperial_display">Imperial</string>
+    <string name="imperial_value" translatable="false">imperial</string>
+    <string name="metric_display">Metric</string>
+    <string name="metric_value" translatable="false">metric</string>
 </resources>

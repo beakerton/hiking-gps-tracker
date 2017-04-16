@@ -2,6 +2,7 @@ package net.herchenroether.hikinggps;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -94,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         // We already have the permission, start location tracking
         startLocationTracking();
-        mAppLocationManager.addListener(mLocationViewModel);
     }
 
     protected void onStop() {
@@ -123,7 +123,19 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     }
 
+    /**
+     * Does everything necessary to start tracking location:
+     * -Reads shared pref for imperial vs. metric system
+     * -Adds listener for location updates
+     * -Connects to google API for location updates
+     */
     private void startLocationTracking() {
+        final SharedPreferences appPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final String imperialValue = getString(R.string.imperial_value);
+        final boolean isImperial = appPreferences.getString("unit_system", imperialValue).equals(imperialValue);
+        mLocationViewModel.setUnitSystem(isImperial);
+        mAppLocationManager.addListener(mLocationViewModel);
+
         mAppLocationManager.connect();
     }
 }
