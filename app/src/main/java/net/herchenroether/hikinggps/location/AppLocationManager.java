@@ -17,8 +17,8 @@ import com.google.android.gms.location.LocationServices;
 
 import net.herchenroether.hikinggps.utils.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.inject.Singleton;
 
@@ -33,14 +33,15 @@ import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCU
 public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private final long LOCATION_UPDATE_INTERVAL_MILLIS = 5000;
 
-    private final List<LocationUpdatedListener> mListeners;
+    private final Set<LocationUpdatedListener> mListeners;
 
     private Context mContext;
     private GoogleApiClient mGoogleApiClient;
+    private volatile Location mLocation;
 
     public AppLocationManager(@NonNull Context context) {
         mContext = context;
-        mListeners = new ArrayList<>();
+        mListeners = new HashSet<>();
     }
 
     /**
@@ -70,7 +71,9 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Logger.info("AppLocationManager: Starting location updates");
-            final LocationRequest locationRequest = new LocationRequest().setPriority(PRIORITY_HIGH_ACCURACY).setInterval(LOCATION_UPDATE_INTERVAL_MILLIS);
+            final LocationRequest locationRequest = new LocationRequest()
+                    .setPriority(PRIORITY_HIGH_ACCURACY)
+                    .setInterval(LOCATION_UPDATE_INTERVAL_MILLIS);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
         }
     }
@@ -92,9 +95,11 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
      */
     @Override
     public void onLocationChanged(Location location) {
+        mLocation = location;
+        Logger.info("Got location: " + mLocation);
         synchronized(mListeners) {
             for (LocationUpdatedListener listener : mListeners) {
-                listener.onLocationUpdated(location);
+                listener.onLocationUpdated(mLocation);
             }
         }
     }
@@ -115,5 +120,14 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
         synchronized(mListeners) {
             mListeners.remove(listener);
         }
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Nullable
+    public Location getLocation() {
+        return mLocation;
     }
 }

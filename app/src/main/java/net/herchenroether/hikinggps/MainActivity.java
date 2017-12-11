@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -13,13 +14,24 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ContextMenu;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.PopupMenu;
+
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 import net.herchenroether.hikinggps.activity.SettingsActivity;
 import net.herchenroether.hikinggps.databinding.ActivityMainBinding;
 import net.herchenroether.hikinggps.location.AppLocationManager;
+import net.herchenroether.hikinggps.location.LocationUpdatedListener;
 import net.herchenroether.hikinggps.location.LocationViewModel;
 import net.herchenroether.hikinggps.utils.Logger;
 
@@ -27,14 +39,21 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
+import static com.google.android.gms.maps.GoogleMap.MAP_TYPE_TERRAIN;
+
 /**
  * Entry activity to the application
  */
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity implements
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        OnMapReadyCallback,
+        LocationUpdatedListener,
+        PopupMenu.OnMenuItemClickListener {
 
     @Inject
     AppLocationManager mAppLocationManager;
 
+    private GoogleMap mMap;
     private LocationViewModel mLocationViewModel;
 
     @Override
@@ -51,38 +70,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mLocationViewModel = new LocationViewModel(this);
         mainBinding.locationInfo.setLocation(mLocationViewModel);
 
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        final int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-        }
-
-        return super.onOptionsItemSelected(item);
+        // Get the SupportMapFragment and request notification when the map is ready to be used.
+        final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     protected void onStart() {
@@ -98,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     protected void onStop() {
+        mAppLocationManager.removeListener(this);
         mAppLocationManager.removeListener(mLocationViewModel);
         mAppLocationManager.disconnect();
         super.onStop();
@@ -124,6 +116,37 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     }
 
     /**
+     * Shows the popup menu when tapped
+     *
+     * @param v the view that was tapped
+     */
+    public void showMenu(View v) {
+        final PopupMenu popup = new PopupMenu(this, v);
+
+        // This activity implements OnMenuItemClickListener
+        popup.setOnMenuItemClickListener(this);
+        popup.inflate(R.menu.menu_main);
+        popup.show();
+    }
+
+    /**
+     * Executes whatever option the user picked from the menu
+     *
+     * @param item
+     * @return
+     */
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Does everything necessary to start tracking location:
      * -Reads shared pref for imperial vs. metric system
      * -Adds listener for location updates
@@ -135,7 +158,41 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         final boolean isImperial = appPreferences.getString("unit_system", imperialValue).equals(imperialValue);
         mLocationViewModel.setUnitSystem(isImperial);
         mAppLocationManager.addListener(mLocationViewModel);
-
+        mAppLocationManager.addListener(this);
         mAppLocationManager.connect();
+    }
+
+    /**
+     * Called when the map fragment is done loading
+     *
+     * @param googleMap
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        Logger.info("Map loaded");
+        mMap = googleMap;
+        mMap.setMapType(MAP_TYPE_TERRAIN);
+
+        // Enable user location if we have the permission
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        }
+
+        final Location location = mAppLocationManager.getLocation();
+        if (location != null) {
+            final CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 10);
+            googleMap.moveCamera(update);
+        }
+    }
+
+    /**
+     * Center the map on the location whenever we get an update
+     *
+     * @param location - the new location
+     */
+    @Override
+    public void onLocationUpdated(@NonNull Location location) {
+        final CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15);
+        mMap.moveCamera(update);
     }
 }

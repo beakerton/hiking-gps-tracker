@@ -1,3 +1,6 @@
+# Ignore this file as it contains the google maps API key
+gradle.properties
+
 # Built application files
 *.apk
 *.ap_
