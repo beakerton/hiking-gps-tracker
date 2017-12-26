@@ -3,12 +3,12 @@
     <string name="action_settings">Settings</string>
 
     <string name="location_label">Location: </string>
-    <string name="lat_long_display">%1$f, %2$f</string>
+    <string name="lat_long_display">%1$.2f, %2$.2f</string>
     <string name="elevation_label">Elevation: </string>
     <string name="elevation_display">%1$.1f meters</string>
     <string name="elevation_display_imperial">%1$.1f feet</string>
-    <string name="accuracy">Location is accurate within %.1f meters</string>
-    <string name="accuracy_imperial">Location is accurate within %.1f feet</string>
+    <string name="accuracy">Accuracy: %.1f meters</string>
+    <string name="accuracy_imperial">Accuracy: %.1f feet</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
@@ -26,4 +26,7 @@
     <string name="imperial_value" translatable="false">imperial</string>
     <string name="metric_display">Metric</string>
     <string name="metric_value" translatable="false">metric</string>
+
+    <!-- Content descriptions for image -->
+    <string name="menu_button_content_description">Menu button</string>
 </resources>

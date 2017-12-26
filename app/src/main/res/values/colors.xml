@@ -3,4 +3,10 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <!-- Border color for buttons etc -->
+    <color name="border_color">#000000</color>
+
+    <!-- Background color for buttons/location info with 80% opacity -->
+    <color name="overlay_background_80_opacity">#80FFFFFF</color>
 </resources>

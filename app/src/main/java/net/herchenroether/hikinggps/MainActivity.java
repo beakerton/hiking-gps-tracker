@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements
     @Inject
     AppLocationManager mAppLocationManager;
 
+    private boolean mInitialLocationSet;
     private GoogleMap mMap;
     private LocationViewModel mLocationViewModel;
 
@@ -74,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements
         final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // When creating the activity, add a listener so we can center the map after initialization
+        mAppLocationManager.addListener(this);
     }
 
     protected void onStart() {
@@ -105,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements
                     Logger.info("Location permission granted");
                     startLocationTracking();
                 } else {
+                    // TODO: have some sort of fallback if the user says no
                     Logger.warn("Location permission denied");
                 }
                 return;
@@ -158,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements
         final boolean isImperial = appPreferences.getString("unit_system", imperialValue).equals(imperialValue);
         mLocationViewModel.setUnitSystem(isImperial);
         mAppLocationManager.addListener(mLocationViewModel);
-        mAppLocationManager.addListener(this);
         mAppLocationManager.connect();
     }
 
@@ -171,17 +175,11 @@ public class MainActivity extends AppCompatActivity implements
     public void onMapReady(GoogleMap googleMap) {
         Logger.info("Map loaded");
         mMap = googleMap;
-        mMap.setMapType(MAP_TYPE_TERRAIN);
+        mMap.setPadding(0,200,0,0);
 
         // Enable user location if we have the permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-        }
-
-        final Location location = mAppLocationManager.getLocation();
-        if (location != null) {
-            final CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 10);
-            googleMap.moveCamera(update);
         }
     }
 
@@ -192,7 +190,13 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onLocationUpdated(@NonNull Location location) {
-        final CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15);
-        mMap.moveCamera(update);
+        // TODO: Should deregister the listener after we set the initial location, but that
+        // can't be done in this listener because of a ConcurrentModificationException
+        // For now use a boolean so we don't keep resetting the map center point
+        if (!mInitialLocationSet) {
+            final CameraUpdate update = CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15);
+            mMap.moveCamera(update);
+            mInitialLocationSet = true;
+        }
     }
 }
