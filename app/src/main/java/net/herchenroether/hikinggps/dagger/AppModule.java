@@ -1,9 +1,7 @@
 package net.herchenroether.hikinggps.dagger;
 
 import android.app.Application;
-import android.support.annotation.NonNull;
-
-import net.herchenroether.hikinggps.location.AppLocationManager;
+import androidx.annotation.NonNull;
 
 import javax.inject.Singleton;
 

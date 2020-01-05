@@ -1,12 +1,12 @@
 package net.herchenroether.hikinggps.location;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
 import android.location.Location;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import net.herchenroether.hikinggps.R;
 
