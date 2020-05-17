@@ -5,9 +5,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -107,9 +107,7 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
      */
     public void addListener(@NonNull LocationUpdatedListener listener) {
         synchronized(mListeners) {
-            if (!mListeners.contains(listener)) {
-                mListeners.add(listener);
-            }
+            mListeners.add(listener);
         }
     }
 
@@ -118,9 +116,7 @@ public class AppLocationManager implements GoogleApiClient.ConnectionCallbacks, 
      */
     public void removeListener(@NonNull LocationUpdatedListener listener) {
         synchronized(mListeners) {
-            if (mListeners.contains(listener)) {
-                mListeners.remove(listener);
-            }
+            mListeners.remove(listener);
         }
     }
 
